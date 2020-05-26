@@ -1,9 +1,11 @@
-package by.epam.nikita.service;
+package by.epam.nikita.service.implementation;
 
-import by.epam.nikita.domain.interfaces.User;
+import by.epam.nikita.domain.interfaces_marker.User;
 import by.epam.nikita.domain.models.Course;
 import by.epam.nikita.domain.models.Student;
 import by.epam.nikita.repository.StudentRepo;
+import by.epam.nikita.service.serviceInterfaces.CourseService;
+import by.epam.nikita.service.serviceInterfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 
 @Service
-public class StudentService {
+public class StudentServiceImpl implements by.epam.nikita.service.serviceInterfaces.StudentService {
 
     @Autowired
     private StudentRepo studentRepo;
@@ -30,6 +32,7 @@ public class StudentService {
      * @param pageable - parameter for pagination information
      * @return list of Students as a page(s)
      */
+    @Override
     public Page<Student> getAllStudents(Pageable pageable) {
         return studentRepo.findAll(pageable);
     }
@@ -40,6 +43,7 @@ public class StudentService {
      * @param username - name of Student
      * @return Student with {@param studentName}
      */
+    @Override
     public Student getStudentByUsername(String username) {
         return studentRepo.findByUsername(username);
     }
@@ -51,6 +55,7 @@ public class StudentService {
      * @param id - id of Student
      * @return Student with {@param id} if he exist in database else {@return null}
      */
+    @Override
     public Student getStudentById(Long id) {
         return studentRepo.findById(id).orElse(null);
     }
@@ -63,6 +68,7 @@ public class StudentService {
      * @param student - student which must be added to database
      * @return false if {@param student} already exists and true if was added {@param student}
      */
+    @Override
     public boolean addStudent(Student student) {
         Student studentFromDB = studentRepo.findByUsername(student.getUsername());
         if (studentFromDB != null) {        //this Student already exist in database
@@ -79,6 +85,7 @@ public class StudentService {
      * @param id - id of student
      * @return page(s) of courses or else {@return null}
      */
+    @Override
     public Page<Course> getByStudentId(Long id) {
         Student student = studentRepo.findById(id).orElse(null);
         if (student != null) {
@@ -93,6 +100,7 @@ public class StudentService {
      * @param courseId  - current Course's id
      * @return true if Student was added on a Course and false if he wasn'to
      */
+    @Override
     public boolean isStudentStartLearnCourse(Long studentId, Long courseId) {
         Course course = courseService.getById(courseId);
         Student student = studentRepo.findById(studentId).orElse(null);

@@ -1,11 +1,13 @@
 package by.epam.nikita.controller;
 
+import by.epam.nikita.DTO.models.CourseDTO;
+import by.epam.nikita.DTO.models.TeacherDTO;
 import by.epam.nikita.domain.models.Course;
-import by.epam.nikita.domain.models.Teacher;
-import by.epam.nikita.service.CourseService;
-import by.epam.nikita.service.TeacherService;
-import by.epam.nikita.service.UserService;
-import by.epam.nikita.service.ValidationService;
+import by.epam.nikita.service.implementation.ValidationService;
+import by.epam.nikita.service.serviceInterfaces.Convertor;
+import by.epam.nikita.service.serviceInterfaces.CourseService;
+import by.epam.nikita.service.serviceInterfaces.ErrorHandler;
+import by.epam.nikita.service.serviceInterfaces.TeacherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,13 +32,16 @@ public class CourseController {
     private CourseService courseService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private TeacherService teacherService;
 
     @Autowired
     private ValidationService validationService;
+
+    @Autowired
+    private Convertor converter;
+
+    @Autowired
+    private ErrorHandler errorHandler;
 
     /**
      * Method {@return all courses} from database as a page(s)
@@ -51,7 +56,8 @@ public class CourseController {
     public String listCourses(Model model,
                               Authentication authentication,
                               @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
-        Page<Course> page = courseService.getAll(pageable);
+        Page<CourseDTO> page = courseService.getAll(pageable)
+                .map(course -> converter.convertToDto(course));
         model.addAttribute("page", page);
         model.addAttribute("url", "/courses");
         if (validationService.isTeacher(authentication))
@@ -69,7 +75,8 @@ public class CourseController {
     @GetMapping("course/add")
     public String addCourse(Model model,
                             @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
-        Page<Teacher> page = teacherService.getAllTeachers(pageable);
+        Page<TeacherDTO> page = teacherService.getAllTeachers(pageable)
+                .map(teacher -> converter.convertToDto(teacher));
         model.addAttribute("page", page);
         return "editCourse";
     }
@@ -87,9 +94,11 @@ public class CourseController {
                                @PathVariable Long id,
                                @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
         Course editCourse = courseService.getById(id);
-        Page<Teacher> page = teacherService.getAllTeachers(pageable);
+        CourseDTO courseDTO = converter.convertToDto(editCourse);
+        Page<TeacherDTO> page = teacherService.getAllTeachers(pageable)
+                .map(teacher -> converter.convertToDto(teacher));
         if (editCourse != null) {
-            model.addAttribute("course", editCourse);
+            model.addAttribute("course", courseDTO);
             model.addAttribute("page", page);
         }
         return "editCourse";
@@ -114,7 +123,6 @@ public class CourseController {
                             Model model,
                             @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
         Map<String, String> errorsMap = ControllerUtils.getErrors(bindingResult);
-
         if (validationService.isCoursePresentInDB(course.getCourseName())) {
             errorsMap.put("courseNameError", "Course with name " + course.getCourseName() + " already exist!");
             if (!validationService.isTeacherPresentInDB(username)) {
@@ -172,7 +180,7 @@ public class CourseController {
      */
     private String getCourse(@Valid Course course, BindingResult bindingResult, Model model,
                              @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
-        Page<Course> page = courseService.getAll(pageable);
+        Page<CourseDTO> page = courseService.getAll(pageable).map(course1 -> converter.convertToDto(course1));
         model.addAttribute("url", "/courses");
         model.addAttribute("page", page);
         if (bindingResult.hasErrors()) {
@@ -185,7 +193,7 @@ public class CourseController {
                 return "redirect:/courses";
             } else {
                 model.addAttribute("page", page);
-                model.addAttribute("savingReport", "Course with name like this already exist!");
+                errorHandler.withError(model, "Course with name like this already exist!");
                 return "editCourse";
             }
         }

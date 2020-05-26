@@ -1,6 +1,6 @@
 package by.epam.nikita.config;
 
-import by.epam.nikita.service.UserService;
+import by.epam.nikita.service.implementation.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     @Bean
     public PasswordEncoder getPasswordEncoder() {
@@ -32,7 +32,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/", "/registration", "/registration/*", "/activate/*", "/startPage").permitAll()
+                .antMatchers("/", "/registration", "/registration/*", "/activate/*", "/startPage", "/somePage").permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -48,7 +48,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userService)
+        auth.userDetailsService(userServiceImpl)
                 .passwordEncoder(passwordEncoder);
     }
 }

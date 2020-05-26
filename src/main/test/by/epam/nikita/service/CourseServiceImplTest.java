@@ -3,6 +3,8 @@ package by.epam.nikita.service;
 import by.epam.nikita.domain.models.Course;
 import by.epam.nikita.domain.models.Teacher;
 import by.epam.nikita.repository.CourseRepo;
+import by.epam.nikita.service.implementation.CourseServiceImpl;
+import by.epam.nikita.service.implementation.ValidationService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,10 +24,10 @@ import static org.mockito.BDDMockito.given;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class CourseServiceTest {
+public class CourseServiceImplTest {
 
     @Autowired
-    private CourseService courseService;
+    private CourseServiceImpl courseServiceImpl;
 
     @MockBean
     private CourseRepo courseRepo;
@@ -40,14 +42,14 @@ public class CourseServiceTest {
 
         Mockito.doReturn(Optional.of(course)).when(courseRepo).findById(1L);
 
-        Assert.assertNotNull(courseService.getById(1L));
+        Assert.assertNotNull(courseServiceImpl.getById(1L));
     }
 
     @Test
     public void shouldReturnNullCourseById() {
         Mockito.doReturn(Optional.empty()).when(courseRepo).findById(1L);
 
-        Assert.assertNull(courseService.getById(1L));
+        Assert.assertNull(courseServiceImpl.getById(1L));
     }
 
     @Test
@@ -63,7 +65,7 @@ public class CourseServiceTest {
 
         Mockito.doReturn(new PageImpl<>(courses)).when(courseRepo).findByTeacherId(1L, Pageable.unpaged());
 
-        Assert.assertEquals(courseService.getByTeacherId(1L, Pageable.unpaged()), new PageImpl<>(courses));
+        Assert.assertEquals(courseServiceImpl.getByTeacherId(1L, Pageable.unpaged()), new PageImpl<>(courses));
     }
 
     @Test
@@ -73,7 +75,7 @@ public class CourseServiceTest {
 
         Mockito.doReturn(course).when(courseRepo).findByCourseName("Math");
 
-        Assert.assertNotNull(courseService.getByCourseName("Math"));
+        Assert.assertNotNull(courseServiceImpl.getByCourseName("Math"));
 
     }
 
@@ -82,7 +84,7 @@ public class CourseServiceTest {
 
         Mockito.doReturn(null).when(courseRepo).findByCourseName("Math");
 
-        Assert.assertNull(courseService.getByCourseName("Math"));
+        Assert.assertNull(courseServiceImpl.getByCourseName("Math"));
 
     }
 
@@ -95,7 +97,7 @@ public class CourseServiceTest {
         given(validationService.isNewCourse(1L)).willReturn(true);
         given(validationService.isCoursePresentInDB("Math")).willReturn(true);
 
-        Assert.assertTrue(courseService.saveCourse(course));
+        Assert.assertTrue(courseServiceImpl.saveCourse(course));
     }
 
     @Test
@@ -107,6 +109,6 @@ public class CourseServiceTest {
         Mockito.doReturn(true).when(validationService).isNewCourse(1L);
         Mockito.doReturn(false).when(validationService).isCoursePresentInDB("Math");
 
-        Assert.assertFalse(courseService.saveCourse(course));
+        Assert.assertFalse(courseServiceImpl.saveCourse(course));
     }
 }

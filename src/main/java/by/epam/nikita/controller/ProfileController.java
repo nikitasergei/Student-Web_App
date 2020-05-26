@@ -1,11 +1,17 @@
 package by.epam.nikita.controller;
 
-import by.epam.nikita.domain.interfaces.User;
+import by.epam.nikita.DTO.models.CourseDTO;
+import by.epam.nikita.DTO.models.StudentDTO;
+import by.epam.nikita.DTO.models.TeacherDTO;
+import by.epam.nikita.domain.interfaces_marker.User;
+import by.epam.nikita.domain.models.Course;
 import by.epam.nikita.domain.models.Student;
 import by.epam.nikita.domain.models.Teacher;
-import by.epam.nikita.service.*;
+import by.epam.nikita.service.implementation.ValidationService;
+import by.epam.nikita.service.serviceInterfaces.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -19,10 +25,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-
 @Controller
 public class ProfileController {
 
@@ -34,6 +36,9 @@ public class ProfileController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private Convertor converter;
 
     @Autowired
     private StudentService studentService;
@@ -59,14 +64,16 @@ public class ProfileController {
                              Authentication authentication) {
         if (validationService.isStudent(authentication)) {
             Student student = studentService.getStudentById(id);
+            StudentDTO studentDTO = converter.convertToDto(student);
             model.addAttribute("role", "student");
-            model.addAttribute("user", student);
+            model.addAttribute("user", studentDTO);
             if (student.getFilename() != null)
                 model.addAttribute("file", student.getFilename());
             return "profile";
         } else if (validationService.isTeacher(authentication)) {
             Teacher teacher = teacherService.getTeacherById(id);
-            model.addAttribute("user", teacher);
+            TeacherDTO teacherDTO = converter.convertToDto(teacher);
+            model.addAttribute("user", teacherDTO);
             model.addAttribute("role", "teacher");
             if (teacher.getFilename() != null)
                 model.addAttribute("file", teacher.getFilename());
@@ -87,9 +94,13 @@ public class ProfileController {
     public String getCoursesForEnroll(Model model,
                                       @PathVariable Long studentId,
                                       @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
-        model.addAttribute("page", courseService.getAll(pageable));
+        Page<Course> courses = courseService.getAll(pageable);
+        Page<CourseDTO> coursesDTO = courses.map(course -> converter.convertToDto(course));
+        Student studentById = studentService.getStudentById(studentId);
+        StudentDTO studentDTO = converter.convertToDto(studentById);
+        model.addAttribute("page", coursesDTO);
         model.addAttribute("url", "/courses");
-        model.addAttribute("student", studentService.getStudentById(studentId));
+        model.addAttribute("student", studentDTO);
         return "coursesForEnroll";
     }
 
@@ -102,7 +113,6 @@ public class ProfileController {
      * @param email    - new email if not empty
      * @param file     - new file if not empty
      * @return profile page of current User with updated information
-     * @throws IOException - in case of reading or writing errors
      */
     @PostMapping("profile/{id}")
     public String updateProfile(
@@ -110,20 +120,7 @@ public class ProfileController {
             @RequestParam String password,
             @RequestParam String email,
             @RequestParam("file") MultipartFile file) {
-        String resultFilename = user.getFilename();
-        if (file != null && !file.getOriginalFilename().isEmpty()) {
-            File uploadDir = new File(uploadPath);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdir();
-            }
-            String uuidFile = UUID.randomUUID().toString();
-            resultFilename = uuidFile + "." + file.getOriginalFilename();
-            try {
-                file.transferTo(new File(uploadPath + "/" + resultFilename));
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
-        }
+        String resultFilename = userService.generateFileName(user, file, uploadPath);
         userService.updateProfile(user, password, email, resultFilename);
         return "redirect:/profile/{id}";
     }

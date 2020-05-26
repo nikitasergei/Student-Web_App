@@ -5,6 +5,10 @@ import by.epam.nikita.domain.models.Course;
 import by.epam.nikita.domain.models.Student;
 import by.epam.nikita.domain.models.Teacher;
 import by.epam.nikita.repository.ArchiveRepo;
+import by.epam.nikita.service.implementation.ArchiveServiceImpl;
+import by.epam.nikita.service.implementation.CourseServiceImpl;
+import by.epam.nikita.service.implementation.StudentServiceImpl;
+import by.epam.nikita.service.implementation.TeacherServiceImpl;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,22 +26,22 @@ import java.util.Optional;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class ArchiveServiceTest {
+public class ArchiveServiceImplTest {
 
     @Autowired
-    private ArchiveService archiveService;
+    private ArchiveServiceImpl archiveServiceImpl;
 
     @MockBean
     private ArchiveRepo archiveRepo;
 
     @MockBean
-    private CourseService courseService;
+    private CourseServiceImpl courseServiceImpl;
 
     @MockBean
-    private StudentService studentService;
+    private StudentServiceImpl studentServiceImpl;
 
     @MockBean
-    private TeacherService teacherService;
+    private TeacherServiceImpl teacherServiceImpl;
 
     @Test
     public void shouldReturnNotNullArchive() {
@@ -46,7 +50,7 @@ public class ArchiveServiceTest {
 
         Mockito.doReturn(Optional.of(archive)).when(archiveRepo).findById(1L);
 
-        Assert.assertNotNull(archiveService.getById(1L));
+        Assert.assertNotNull(archiveServiceImpl.getById(1L));
 
 
     }
@@ -58,7 +62,7 @@ public class ArchiveServiceTest {
 
         Mockito.doReturn(Optional.empty()).when(archiveRepo).findById(2L);
 
-        Assert.assertNull(archiveService.getById(2L));
+        Assert.assertNull(archiveServiceImpl.getById(2L));
     }
 
 
@@ -75,7 +79,7 @@ public class ArchiveServiceTest {
 
         Mockito.doReturn(new PageImpl<>(archives)).when(archiveRepo).findAllByCourseId(1L, Pageable.unpaged());
 
-        Assert.assertEquals(new PageImpl<>(archives), archiveService.getCourseArchive(1L, Pageable.unpaged()));
+        Assert.assertEquals(new PageImpl<>(archives), archiveServiceImpl.getCourseArchive(1L, Pageable.unpaged()));
 
     }
 
@@ -87,7 +91,7 @@ public class ArchiveServiceTest {
 
         Mockito.doReturn(null).when(archiveRepo).findById(archive.getId());
 
-        Assert.assertTrue(archiveService.saveArchive(archive));
+        Assert.assertTrue(archiveServiceImpl.saveArchive(archive));
     }
 
     @Test
@@ -106,10 +110,10 @@ public class ArchiveServiceTest {
 
         Integer rating = 1;
 
-        Mockito.doReturn(course).when(courseService).getByCourseName(courseName);
-        Mockito.doReturn(teacher).when(teacherService).getTeacherByUsername(teacherName);
-        Mockito.doReturn(student).when(studentService).getStudentByUsername(studentName);
-        Archive testArchive = archiveService.setArchiveAttributes(courseName, teacherName, studentName, rating);
+        Mockito.doReturn(course).when(courseServiceImpl).getByCourseName(courseName);
+        Mockito.doReturn(teacher).when(teacherServiceImpl).getTeacherByUsername(teacherName);
+        Mockito.doReturn(student).when(studentServiceImpl).getStudentByUsername(studentName);
+        Archive testArchive = archiveServiceImpl.setArchiveAttributes(courseName, teacherName, studentName, rating);
 
         Assert.assertNotNull(testArchive);
         Assert.assertEquals(testArchive.getCourse().getCourseName(), courseName);

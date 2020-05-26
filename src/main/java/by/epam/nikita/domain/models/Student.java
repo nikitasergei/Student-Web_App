@@ -1,6 +1,6 @@
 package by.epam.nikita.domain.models;
 
-import by.epam.nikita.domain.interfaces.User;
+import by.epam.nikita.domain.interfaces_marker.User;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -48,7 +48,7 @@ public class Student implements UserDetails, User {
             cascade = CascadeType.PERSIST,
             orphanRemoval = true,
             mappedBy = "student")
-    List<Archive> archiveNotes;
+    private List<Archive> archiveNotes;
 
     private boolean active;
 

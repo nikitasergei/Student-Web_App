@@ -1,4 +1,4 @@
-package by.epam.nikita.domain.interfaces;
+package by.epam.nikita.domain.interfaces_marker;
 
 import by.epam.nikita.domain.models.Roles;
 import org.springframework.security.core.userdetails.UserDetails;

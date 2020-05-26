@@ -1,10 +1,13 @@
 package by.epam.nikita.controller;
 
+import by.epam.nikita.DTO.models.CourseDTO;
+import by.epam.nikita.DTO.models.TeacherDTO;
 import by.epam.nikita.domain.models.Teacher;
-import by.epam.nikita.service.CourseService;
-import by.epam.nikita.service.TeacherService;
-import by.epam.nikita.service.UserService;
+import by.epam.nikita.service.serviceInterfaces.Convertor;
+import by.epam.nikita.service.serviceInterfaces.CourseService;
+import by.epam.nikita.service.serviceInterfaces.TeacherService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -20,10 +23,10 @@ public class TeacherController {
     private CourseService courseService;
 
     @Autowired
-    private UserService userService;
+    private TeacherService teacherService;
 
     @Autowired
-    private TeacherService teacherService;
+    private Convertor converter;
 
     /**
      * Method get all Teachers from database and {@return teachers} view with them
@@ -35,7 +38,10 @@ public class TeacherController {
     @GetMapping("teachers")
     public String getTeachersList(Model model,
                                   @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
-        model.addAttribute("page", teacherService.getAllTeachers(pageable));
+        Page<TeacherDTO> page = teacherService.getAllTeachers(pageable)
+                .map(teacher -> converter.convertToDto(teacher));
+
+        model.addAttribute("page", page);
         model.addAttribute("url", "/teachers");
 
         return "teachers";
@@ -65,11 +71,14 @@ public class TeacherController {
                                 @PathVariable Long id,
                                 @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
         Teacher editTeacher = teacherService.getTeacherById(id);
+        TeacherDTO teacher = converter.convertToDto(editTeacher);
         if (editTeacher != null) {
-            model.addAttribute("teacher", editTeacher);
+            model.addAttribute("teacher", teacher);
             return "editTeacher";
         } else {
-            model.addAttribute("page", teacherService.getAllTeachers(pageable));
+            Page<TeacherDTO> page = teacherService.getAllTeachers(pageable)
+                    .map(teacher1 -> converter.convertToDto(teacher1));
+            model.addAttribute("page", page);
             model.addAttribute("url", "/teachers");
             return "teachers";
         }
@@ -87,7 +96,10 @@ public class TeacherController {
     public String showTeachersCourses(Model model,
                                       @PathVariable Long id,
                                       @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
-        model.addAttribute("page", courseService.getByTeacherId(id, pageable));
+        Page<CourseDTO> page = courseService.getByTeacherId(id, pageable)
+                .map(course -> converter.convertToDto(course));
+
+        model.addAttribute("page", page);
         model.addAttribute("url", "/courses");
         return "courses";
     }

@@ -1,5 +1,6 @@
-package by.epam.nikita.service;
+package by.epam.nikita.service.implementation;
 
+import by.epam.nikita.service.serviceInterfaces.MailSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -7,7 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MailSenderService {
+public class MailSenderService implements MailSender {
 
     @Autowired
     private JavaMailSender javaMailSender;
@@ -23,6 +24,7 @@ public class MailSenderService {
      * @param subject - subject of mail
      * @param message - message of mail
      */
+    @Override
     public void send(String emailTo, String subject, String message) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
 

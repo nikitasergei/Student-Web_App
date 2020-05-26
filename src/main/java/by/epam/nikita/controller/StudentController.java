@@ -1,8 +1,10 @@
 package by.epam.nikita.controller;
 
-import by.epam.nikita.domain.models.Student;
-import by.epam.nikita.service.StudentService;
-import by.epam.nikita.service.UserService;
+import by.epam.nikita.DTO.models.CourseDTO;
+import by.epam.nikita.DTO.models.StudentDTO;
+import by.epam.nikita.service.serviceInterfaces.Convertor;
+import by.epam.nikita.service.serviceInterfaces.ErrorHandler;
+import by.epam.nikita.service.serviceInterfaces.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +22,10 @@ public class StudentController {
     private StudentService studentService;
 
     @Autowired
-    private UserService userService;
+    private Convertor converter;
+
+    @Autowired
+    private ErrorHandler errorHandler;
 
     /**
      * Method for get list of Teachers from database as a page(s) in view "students"
@@ -32,7 +37,10 @@ public class StudentController {
     @GetMapping("/students")
     public String getTeachersList(Model model,
                                   @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
-        model.addAttribute("page", studentService.getAllStudents(pageable));
+        Page<StudentDTO> page = studentService.getAllStudents(pageable)
+                .map(student -> converter.convertToDto(student));
+
+        model.addAttribute("page", page);
         model.addAttribute("url", "/students");
 
         return "/students";
@@ -47,7 +55,10 @@ public class StudentController {
     @GetMapping("studentCourses/{id}")
     public String showStudentsCourses(Model model,
                                       @PathVariable Long id) {
-        model.addAttribute("page", studentService.getByStudentId(id));
+        Page<CourseDTO> page = studentService.getByStudentId(id)
+                .map(course -> converter.convertToDto(course));
+
+        model.addAttribute("page", page);
         model.addAttribute("url", "/courses");
         return "courses";
     }
@@ -67,13 +78,13 @@ public class StudentController {
                                      @PathVariable Long courseId,
                                      @PageableDefault(sort = {"id"}, direction = Sort.Direction.ASC) Pageable pageable) {
         if (studentService.isStudentStartLearnCourse(studentId, courseId)) {
-            Page<Student> page = studentService.getAllStudents(pageable);
+            Page<StudentDTO> page = studentService.getAllStudents(pageable)
+                    .map(student -> converter.convertToDto(student));
             model.addAttribute("page", page);
             model.addAttribute("url", "/students");
             return "/students";
         } else {
-            model.addAttribute("message", "Something is wrong! Try again!");
-            model.addAttribute("messageType", "danger");
+            errorHandler.withError(model, "Something is wrong! Try again!" );
             return "coursesForEnroll";
         }
     }

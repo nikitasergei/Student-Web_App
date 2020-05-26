@@ -34,5 +34,5 @@ public class Course {
 
     @OneToMany(fetch = FetchType.LAZY,
             mappedBy = "course")
-    List<Archive> archiveNotes;
+    private List<Archive> archiveNotes;
 }

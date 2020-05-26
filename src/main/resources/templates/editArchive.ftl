@@ -2,7 +2,7 @@
 <@pt.page>
     <div class="container mt-5" style="width: 50%">
         <h3 style="color: red"> Add archive note </h3>
-        <#if savingReport??>${savingReport}</#if>
+        <#if message??>${message}</#if>
         <div class="form-group mt-3">
             <form method="post">
                 <input type="hidden" name="id"

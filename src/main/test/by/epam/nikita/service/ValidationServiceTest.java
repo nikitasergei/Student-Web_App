@@ -1,9 +1,13 @@
 package by.epam.nikita.service;
 
-import by.epam.nikita.domain.interfaces.User;
+import by.epam.nikita.domain.interfaces_marker.User;
 import by.epam.nikita.domain.models.Course;
 import by.epam.nikita.domain.models.Student;
 import by.epam.nikita.domain.models.Teacher;
+import by.epam.nikita.service.implementation.CourseServiceImpl;
+import by.epam.nikita.service.implementation.StudentServiceImpl;
+import by.epam.nikita.service.implementation.TeacherServiceImpl;
+import by.epam.nikita.service.implementation.ValidationService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,13 +26,13 @@ public class ValidationServiceTest {
     private ValidationService validationService;
 
     @MockBean
-    private StudentService studentService;
+    private StudentServiceImpl studentServiceImpl;
 
     @MockBean
-    private TeacherService teacherService;
+    private TeacherServiceImpl teacherServiceImpl;
 
     @MockBean
-    private CourseService courseService;
+    private CourseServiceImpl courseServiceImpl;
 
 
     @Test
@@ -65,7 +69,7 @@ public class ValidationServiceTest {
         Teacher teacher = new Teacher();
         teacher.setId(1L);
 
-        given(teacherService.getTeacherById(1L))
+        given(teacherServiceImpl.getTeacherById(1L))
                 .willReturn(teacher);
         Assert.assertTrue(validationService.isTeacherPresentInDB(1L));
     }
@@ -75,7 +79,7 @@ public class ValidationServiceTest {
         Teacher teacher = new Teacher();
         teacher.setId(1L);
 
-        given(teacherService.getTeacherById(1L))
+        given(teacherServiceImpl.getTeacherById(1L))
                 .willReturn(null);
         Assert.assertFalse(validationService.isTeacherPresentInDB(1L));
     }
@@ -85,7 +89,7 @@ public class ValidationServiceTest {
         Teacher teacher = new Teacher();
         teacher.setUsername("Mike");
 
-        given(teacherService.getTeacherByUsername("Mike"))
+        given(teacherServiceImpl.getTeacherByUsername("Mike"))
                 .willReturn(teacher);
         Assert.assertTrue(validationService.isTeacherPresentInDB("Mike"));
     }
@@ -95,7 +99,7 @@ public class ValidationServiceTest {
         Teacher teacher = new Teacher();
         teacher.setUsername("Mike");
 
-        given(teacherService.getTeacherByUsername("Mike"))
+        given(teacherServiceImpl.getTeacherByUsername("Mike"))
                 .willReturn(null);
         Assert.assertFalse(validationService.isTeacherPresentInDB("Mike"));
     }
@@ -105,7 +109,7 @@ public class ValidationServiceTest {
         Student student = new Student();
         student.setUsername("Mike");
 
-        given(studentService.getStudentByUsername("Mike"))
+        given(studentServiceImpl.getStudentByUsername("Mike"))
                 .willReturn(null);
         Assert.assertFalse(validationService.isStudentPresentInDB("Mike"));
     }
@@ -115,7 +119,7 @@ public class ValidationServiceTest {
         Student student = new Student();
         student.setUsername("Mike");
 
-        given(studentService.getStudentByUsername("Mike"))
+        given(studentServiceImpl.getStudentByUsername("Mike"))
                 .willReturn(student);
         Assert.assertTrue(validationService.isStudentPresentInDB("Mike"));
     }
@@ -126,7 +130,7 @@ public class ValidationServiceTest {
         user.setId(1L);
 
         given(validationService.isTeacherPresentInDB(1L)).willReturn(null);
-        given(teacherService.getTeacherById(1L)).willReturn(user);
+        given(teacherServiceImpl.getTeacherById(1L)).willReturn(user);
 
         Assert.assertNotNull(validationService.isUserExistById(1L));
 
@@ -138,7 +142,7 @@ public class ValidationServiceTest {
         user.setId(1L);
 
         given(validationService.isStudentPresentInDB(1L)).willReturn(null);
-        given(studentService.getStudentById(1L)).willReturn(user);
+        given(studentServiceImpl.getStudentById(1L)).willReturn(user);
 
         Assert.assertNotNull(validationService.isUserExistById(1L));
     }
@@ -157,7 +161,7 @@ public class ValidationServiceTest {
         Course course = new Course();
         course.setId(1L);
 
-        given(courseService.getById(1L)).willReturn(course);
+        given(courseServiceImpl.getById(1L)).willReturn(course);
         Assert.assertTrue(validationService.isNewCourse(1L));
 
     }
@@ -167,7 +171,7 @@ public class ValidationServiceTest {
         Course course = new Course();
         course.setId(1L);
 
-        given(courseService.getById(1L)).willReturn(null);
+        given(courseServiceImpl.getById(1L)).willReturn(null);
         Assert.assertFalse(validationService.isNewCourse(1L));
 
     }
@@ -177,7 +181,7 @@ public class ValidationServiceTest {
         Course course = new Course();
         course.setCourseName("Math");
 
-        given(courseService.getByCourseName("Math")).willReturn(course);
+        given(courseServiceImpl.getByCourseName("Math")).willReturn(course);
         Assert.assertTrue(validationService.isCoursePresentInDB("Math"));
     }
 
@@ -186,7 +190,7 @@ public class ValidationServiceTest {
         Course course = new Course();
         course.setCourseName("Math");
 
-        given(courseService.getByCourseName("Math")).willReturn(null);
+        given(courseServiceImpl.getByCourseName("Math")).willReturn(null);
         Assert.assertFalse(validationService.isCoursePresentInDB("Math"));
     }
 }

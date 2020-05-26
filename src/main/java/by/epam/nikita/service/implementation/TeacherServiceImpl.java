@@ -1,16 +1,17 @@
-package by.epam.nikita.service;
+package by.epam.nikita.service.implementation;
 
 
-import by.epam.nikita.domain.interfaces.User;
+import by.epam.nikita.domain.interfaces_marker.User;
 import by.epam.nikita.domain.models.Teacher;
 import by.epam.nikita.repository.TeacherRepo;
+import by.epam.nikita.service.serviceInterfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TeacherService {
+public class TeacherServiceImpl implements by.epam.nikita.service.serviceInterfaces.TeacherService {
 
     @Autowired
     private TeacherRepo teacherRepo;
@@ -24,6 +25,7 @@ public class TeacherService {
      * @param pageable - parameter for pagination information
      * @return list of teachers as a page(s)
      */
+    @Override
     public Page<Teacher> getAllTeachers(Pageable pageable) {
         return teacherRepo.findAll(pageable);
     }
@@ -34,6 +36,7 @@ public class TeacherService {
      * @param teacherName - teacher's name
      * @return teacher with {@param teacherName)
      */
+    @Override
     public Teacher getTeacherByUsername(String teacherName) {
         return teacherRepo.findByUsername(teacherName);
     }
@@ -44,6 +47,7 @@ public class TeacherService {
      * @param teacherId - teacher's id
      * @return teacher with {@param id} or else {null}
      */
+    @Override
     public Teacher getTeacherById(Long teacherId) {
         return teacherRepo.findById(teacherId).orElse(null);
     }
@@ -56,6 +60,7 @@ public class TeacherService {
      * @param teacher - student which must be added to database
      * @return false if {@param teacher} already exists and true if was added {@param teacher}
      */
+    @Override
     public boolean addUser(Teacher teacher) {
         Teacher teacherFromDB = teacherRepo.findByUsername(teacher.getUsername());
         if (teacherFromDB != null) {

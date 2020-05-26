@@ -1,27 +1,30 @@
-package by.epam.nikita.service;
+package by.epam.nikita.service.implementation;
 
-import by.epam.nikita.domain.interfaces.User;
+import by.epam.nikita.domain.interfaces_marker.User;
 import by.epam.nikita.domain.models.Roles;
 import by.epam.nikita.domain.models.Student;
 import by.epam.nikita.domain.models.Teacher;
 import by.epam.nikita.repository.StudentRepo;
 import by.epam.nikita.repository.TeacherRepo;
+import by.epam.nikita.service.serviceInterfaces.MailSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.UUID;
 
 @Service
-public class UserService implements UserDetailsService {
+public class UserServiceImpl implements by.epam.nikita.service.serviceInterfaces.UserService {
 
     @Autowired
-    private MailSenderService mailSenderService;
+    private MailSender mailSenderService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -77,6 +80,7 @@ public class UserService implements UserDetailsService {
      * @param user - student which must be added to database
      * @return false if {@param user} already exists and true if was added {@param user}
      */
+    @Override
     public User setUserDetails(User user) {
         user.setActive(false);
         user.setActivationCode(UUID.randomUUID().toString());
@@ -116,6 +120,7 @@ public class UserService implements UserDetailsService {
      * @param user - user for activation
      * @return true if {@param user} was activated
      */
+    @Override
     public boolean prepareToActivateUser(User user) {
         user.setActivationCode(null);
         user.setActive(true);
@@ -129,6 +134,7 @@ public class UserService implements UserDetailsService {
      * @param code - code for activate Student from his email
      * @return - false if records in table hasn't {@param code} and {@return true} if Student was successfully activated
      */
+    @Override
     public boolean activateUser(String code) {
         Student studentByCode = studentRepo.findByActivationCode(code);
         Teacher teacherByCode = teacherRepo.findByActivationCode(code);
@@ -146,6 +152,7 @@ public class UserService implements UserDetailsService {
      * @param user - Student or Teacher to save
      * @return user - user which was saved in database
      */
+    @Override
     public User saveUser(User user) {
         if (user.getClass().equals(Student.class)) {
             return studentRepo.save((Student) user);
@@ -165,6 +172,7 @@ public class UserService implements UserDetailsService {
      * @param email    - email for update
      * @param filename - file's name for update
      */
+    @Override
     public void updateProfile(User user, String password, String email, String filename) {
         String userEmail = user.getEmail();
         String userFilename = user.getFilename();
@@ -187,5 +195,44 @@ public class UserService implements UserDetailsService {
             user.setFilename(filename);
         }
         saveUser(user);
+    }
+
+    /**
+     * Check is {@param user's} file equals {@param file} and return name of it, else
+     * generate new filename for {@param file}
+     *
+     * @param user - User, who load {@param file}
+     * @param file - a representation of an uploaded file received in a multipart request
+     * @param path - path for create new File
+     * @return name of {@param file} as String
+     */
+    @Override
+    public String generateFileName(User user, MultipartFile file, String path) {
+        String resultFilename = user.getFilename();
+        if (validationService.isFailValid(file)) {
+            createNewFile(path);
+            String uuidFile = UUID.randomUUID().toString();
+            resultFilename = uuidFile + "." + file.getOriginalFilename();
+            try {
+                file.transferTo(new File(path + "/" + resultFilename));
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+        return resultFilename;
+    }
+
+    /**
+     * Check is file exist otherwise create new File
+     *
+     * @param path - path to create File
+     * @return created file
+     */
+    public File createNewFile(String path) {
+        File file = new File(path);
+        if (!file.exists()) {
+            file.mkdir();
+        }
+        return file;
     }
 }

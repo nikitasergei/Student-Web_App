@@ -2,7 +2,7 @@
 <@pt.page>
     <div class="container mt-5" style="width: 50%">
         <h3 style="color: red"><#if course?? && course.id??> Edit course<#else> Add new course</#if></h3>
-        <div style="color: red"><#if savingReport??>${savingReport}</#if>
+        <div style="color: red"><#if message??>${message}</#if>
         </div>
         <div class="form-group mt-3">
             <form method="post">

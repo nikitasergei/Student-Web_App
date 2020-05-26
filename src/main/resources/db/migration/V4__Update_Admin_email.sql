@@ -1,0 +1,1 @@
+update teacher set email='some@mail.ru' where id='1'

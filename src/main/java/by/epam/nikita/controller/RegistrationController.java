@@ -1,12 +1,14 @@
 package by.epam.nikita.controller;
 
 import by.epam.nikita.DTO.CaptchaResponseDto;
-import by.epam.nikita.domain.interfaces.User;
+import by.epam.nikita.domain.interfaces_marker.User;
 import by.epam.nikita.domain.models.Student;
 import by.epam.nikita.domain.models.Teacher;
-import by.epam.nikita.service.StudentService;
-import by.epam.nikita.service.TeacherService;
-import by.epam.nikita.service.UserService;
+import by.epam.nikita.service.implementation.ValidationService;
+import by.epam.nikita.service.serviceInterfaces.ErrorHandler;
+import by.epam.nikita.service.serviceInterfaces.StudentService;
+import by.epam.nikita.service.serviceInterfaces.TeacherService;
+import by.epam.nikita.service.serviceInterfaces.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -42,6 +44,12 @@ public class RegistrationController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private ValidationService validationService;
+
+    @Autowired
+    private ErrorHandler errorHandler;
 
     /**
      * Method for GET "home" view
@@ -104,31 +112,23 @@ public class RegistrationController {
             BindingResult bindingResult,
             Model model
     ) {
-        String url = String.format(CAPTCHA_URL, secret, captchaResponse);
-        CaptchaResponseDto captchaResponseDto = restTemplate.postForObject(url, Collections.emptyList(), CaptchaResponseDto.class);
-        if (!captchaResponseDto.isSuccess()) {
-            model.addAttribute("captchaError", "Fill Captcha");
-        }
         boolean isConfirmEmpty = StringUtils.isEmpty(passwordConfirm);
 
-        if (isConfirmEmpty) {
-            model.addAttribute("passwordConfirmError", "Password confirmation can't be empty");
-        }
-        if (user.getPassword() != null && !user.getPassword().equals(passwordConfirm)) {
-            model.addAttribute("passwordError", "Passwords is different!");
-        }
+        String url = String.format(CAPTCHA_URL, secret, captchaResponse);
+        CaptchaResponseDto captchaResponseDto = restTemplate.postForObject(url, Collections.emptyList(), CaptchaResponseDto.class);
+
+        model = validationService.validateState(model, captchaResponseDto, passwordConfirm, user);
+
         if (isConfirmEmpty || bindingResult.hasErrors()) {
             Map<String, String> errors = ControllerUtils.getErrors(bindingResult);
             model.mergeAttributes(errors);
-
             return "registration";
         }
         if (!isAdded(userRole, user)) {
             model.addAttribute("usernameError", "User exists!");
             return "registration";
         } else {
-            model.addAttribute("message", "You must activate your account. Activation link sent to your email.");
-            model.addAttribute("messageType", "info");
+            errorHandler.sendInfo(model, "You must activate your account. Activation link sent to your email.");
             return "home";
         }
     }
@@ -195,12 +195,10 @@ public class RegistrationController {
         boolean isActivated = userService.activateUser(code);
 
         if (isActivated) {
-            model.addAttribute("messageType", "success");
-            model.addAttribute("message", "User successfully activated");
+            errorHandler.withSuccess(model, "User successfully activated");
             return "home";
         } else {
-            model.addAttribute("messageType", "warning");
-            model.addAttribute("message", "Activation code is not found!");
+            errorHandler.withError(model, "Activation code is not found!");
             return "registration";
         }
     }
