@@ -4,13 +4,14 @@
         <div class="form-group row ml-5">
             <#if isRegisterForm>
                 <div class="container m-5 ">
-                    <div class="col-4">
-                        <div class="list-group list-group" id="list-tab" role="tablist">
-                            <a class="list-group-item list-group-item-action active" id="list-home-list"
-                               data-toggle="list" role="tab" value="teacher">Teacher</a>
-                            <a class="list-group-item list-group-item-action" id="list-profile-list"
+                    <div class="col-3">
+                        <div class="list-group list-group" id="list-tab">
+                            <a class="btn btn-outline-info active" id="list-home-list"
+                               data-toggle="list" role="tab" value="teacher" style="color: white">Teacher</a>
+                            <br>
+                            <a class="btn btn-outline-info" id="list-profile-list"
                                data-toggle="list" role="tab"
-                               value="student">Student</a>
+                               value="student" style="color: white">Student</a>
                         </div>
                     </div>
                 </div>

@@ -80,6 +80,9 @@ public class CourseServiceImpl implements CourseService {
             if (!validationService.isCoursePresentInDB(course.getCourseName())) {
                 courseRepo.save(course);
                 return true;
+            } else if (!course.getTeacher().equals(getById(course.getId()).getTeacher())) {
+                courseRepo.save(course);
+                return true;
             } else return false;
         } else courseRepo.save(course);
         return true;
